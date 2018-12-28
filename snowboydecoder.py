@@ -1,21 +1,24 @@
 #!/usr/bin/env python
 
-import collections
-import pyaudio
-import snowboydetect
-import time
-import wave
 import os
+import time
 import logging
+import collections
+
+import pyaudio
+import wave
+
+os.sys.path.append('./snowboy')
+import snowboydetect
 
 logging.basicConfig()
 logger = logging.getLogger("snowboy")
 logger.setLevel(logging.INFO)
 TOP_DIR = os.path.dirname(os.path.abspath(__file__))
 
-RESOURCE_FILE = os.path.join(TOP_DIR, "resources/common.res")
-DETECT_DING = os.path.join(TOP_DIR, "resources/ding.wav")
-DETECT_DONG = os.path.join(TOP_DIR, "resources/dong.wav")
+RESOURCE_FILE = os.path.join(TOP_DIR, "snowboy/resources/common.res")
+DETECT_DING = os.path.join(TOP_DIR, "snowboy/resources/ding.wav")
+DETECT_DONG = os.path.join(TOP_DIR, "snowboy/resources/dong.wav")
 DETECT_PY   = os.path.join(TOP_DIR, "BitLit_main.py")  ## ADDED
 
 

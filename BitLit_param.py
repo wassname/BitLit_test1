@@ -5,8 +5,9 @@ Created on Tue Dec  4 13:52:18 2018
 @author: 22029152
 """
 import numpy as np
+import os
 
-parameters_poems = np.load('model_poems.npy')[()]
+parameters_poems = np.load(os.path.join('weights', 'model_poems.npy'))[()]
 embedding_weights_poems = parameters_poems['embedding_weights']
 gru_weights_poems = parameters_poems['gru_weights']
 fc_weights_poems = parameters_poems['fc_weights']
@@ -21,7 +22,7 @@ BUFFER_SIZE_poems = parameters_poems['BUFFER_SIZE']
 vocab_size_poems = len(dict(idx2char_poems))
 
 # Load hyperparameters and layers' weights previously saved
-parameters_rhymes = np.load('model_rhymes.npy')[()]
+parameters_rhymes = np.load(os.path.join('weights', 'model_rhymes.npy'))[()]
 embedding_weights_rhymes = parameters_rhymes['embedding_weights']
 gru_weights_rhymes = parameters_rhymes['gru_weights']
 fc_weights_rhymes = parameters_rhymes['fc_weights']

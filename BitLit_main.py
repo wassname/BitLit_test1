@@ -30,15 +30,15 @@ t0=time.time()
 r = sr.Recognizer()                                                                                   
 with sr.Microphone() as source:                                                                       
     tts = gTTS(text='HELLO! My Name is BIT-LIT. PLEASE SPEAK IN ABOUT 3 SECONDS.', lang='en')
-    tts.save("BitLit.mp3")
-    os.system("afplay BitLit.mp3")
+    tts.save("outputs/BitLit.mp3")
+    os.system("afplay outputs/BitLit.mp3")
 #    ######
     
     print("SPEAK NOW-SPEAK NOW-SPEAK NOW:")
     audio = r.listen(source)   
     tts = gTTS(text='THANK YOU! GIVE ME A SECOND TO READ OUT YOUR POEM', lang='en')
-    tts.save("BitLit.mp3")
-    os.system("afplay BitLit.mp3")
+    tts.save("outputs/BitLit.mp3")
+    os.system("afplay outputs/BitLit.mp3")
 try:
     # for testing purposes, we're just using the default API key
     # to use another API key, use `r.recognize_google(audio, key="GOOGLE_SPEECH_RECOGNITION_API_KEY")`
@@ -57,18 +57,19 @@ text_generated=poem(USER_INPUT)
 ################# FEED POEM TO TRANSCRIBER
 print('ML POEM is:', text_generated)
 tts = gTTS(text=text_generated, lang='en')
-tts.save("BitLit.mp3")
-os.system("afplay BitLit.mp3")
+tts.save("outputs/BitLit.mp3")
+os.system("afplay outputs/BitLit.mp3")
 #########################################################
 ####
 print("BIT-LIT ENDING STATEMENT:")   
 tts = gTTS(text='THANK YOU! CHECK ME OUT IN THE NEWS SOON.', lang='en')
-tts.save("BitLit.mp3")
-os.system("afplay BitLit.mp3")
+tts.save("outputs/BitLit.mp3")
+os.system("afplay outputs/BitLit.mp3")
 ######
 t1   =time.time()
 total=t1-t0
 print 'Time spent is about:', np.round(total), 'seconds'
+
 ### USING JUPITER
 # import IPython.display as ipd
 # ipd.Audio(filename='path/to/file.mp3')
