@@ -47,42 +47,55 @@ def play_mp3(mp3_file):
     time.sleep(source.duration + 2)  # must be a better way to wait untill the media has played
 
 
-def cache_gtts(text, lang="en", cache_file=None):
+def cache_gtts(text, lang="en-au", cache_file=None):
     """
     Cache calls to gtts.
     
     Saves each to a temporary file
+
+    languages 
+      en-au: English (Australia)
+        en-ca: English (Canada)
+        en-gb: English (UK)
+        en-gh: English (Ghana)
+        en-ie: English (Ireland)
+        en-in: English (India)
+        en-ng: English (Nigeria)
+        en-nz: English (New Zealand)
+        en-ph: English (Philippines)
+        en-tz: English (Tanzania)
+        en-uk: English (UK)
+        en-us: English (US)
+        en-za: English (South Africa)
+        en: English
+
     """
     if not cache_file:
         hash_filename = hashlib.md5(text.encode()).hexdigest() + '.mp3'
         cache_file = os.path.join(tempfile.gettempdir(), hash_filename)
     if not os.path.isfile(cache_file):
-        tts = gTTS(text=text, lang="en")
+        tts = gTTS(text=text, lang=lang)
         tts.save(cache_file)
-    assert os.path.isfile(cache_file)
     return cache_file
 
 
 def generate_poem():
 
-    # https://github.com/Uberi/speech_recognition/blob/master/reference/library-reference.rst
-    # snowboy_configuration = (SNOWBOY_LOCATION, LIST_OF_HOT_WORD_FILES)
-    snowboy_configuration = ('./snowboy', ['./HiBitLit.pmdl', './snowboy/resources/alexa.umdl', './snowboy/resources/snowboy.umdl'])
 
     ############ AUDIO CONVERSION TO TEST
     play_audio_file()
     t0 = time.time()
     r = sr.Recognizer()
     with sr.Microphone() as source:
-        outfile1 = cache_gtts(text="Hi! My Name is BIT-LIT. PLEASE SPEAK. You have 20 seconds before the beep.", lang="en")
+        outfile1 = cache_gtts(text="Hi! My Name is BIT-LIT. PLEASE SPEAK. You have 20 seconds before the beep.")
         play_mp3(outfile1)
 
         print("SPEAK NOW-SPEAK:", source)
-        audio = r.listen(source, timeout=5, phrase_time_limit=20)#, snowboy_configuration=snowboy_configuration)
+        audio = r.listen(source, phrase_time_limit=20)
         # speech_recognition.WaitTimeoutError
         print('Recorded audio', audio)
 
-        outfile2 = cache_gtts(text="BEEP. THANK YOU! GIVE ME A SECOND TO READ OUT YOUR POEM", lang="en")
+        outfile2 = cache_gtts(text="BEEP. THANK YOU! GIVE ME A SECOND TO READ OUT YOUR POEM")
         play_mp3(outfile2)
 
     t1 = time.time()
@@ -96,7 +109,6 @@ def generate_poem():
         print("Could not understand audio. {}".format(e))
     except sr.RequestError as e:
         print("Could not request results; {0}".format(e))
-    # speech_recognition.WaitTimeoutError
 
     t1b = time.time()
     print('transcribe took', t1b - t1)
@@ -115,7 +127,7 @@ def generate_poem():
     play_mp3(poem_mp3)
 
     print("BIT-LIT ENDING STATEMENT:")
-    outfile = cache_gtts(text="THANK YOU! CHECK ME OUT IN THE NEWS SOON.", lang="en")
+    outfile = cache_gtts(text="THANK YOU! BEEP.", lang="en")
     play_mp3(outfile)
 
     ######
