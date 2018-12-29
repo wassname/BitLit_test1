@@ -47,7 +47,7 @@ def play_mp3(mp3_file):
     time.sleep(source.duration + 2)  # must be a better way to wait untill the media has played
 
 
-def cache_gtts(text, lang="en-au", cache_file=None):
+def cache_gtts(text, lang="en-nz", cache_file=None):
     """
     Cache calls to gtts.
     
@@ -70,6 +70,7 @@ def cache_gtts(text, lang="en-au", cache_file=None):
         en: English
 
     """
+    print('say:', text)
     if not cache_file:
         hash_filename = hashlib.md5(text.encode()).hexdigest() + '.mp3'
         cache_file = os.path.join(tempfile.gettempdir(), hash_filename)
@@ -87,15 +88,12 @@ def generate_poem():
     t0 = time.time()
     r = sr.Recognizer()
     with sr.Microphone() as source:
-        outfile1 = cache_gtts(text="Hi! My Name is BIT-LIT. PLEASE SPEAK. You have 20 seconds before the beep.")
+        outfile1 = cache_gtts(text="Hi! My Name is BIT-LIT. PLEASE SPEAK SOME IDEAS FOR A POEM. You have 20 seconds before the beep.")
         play_mp3(outfile1)
 
-        print("SPEAK NOW-SPEAK:", source)
         audio = r.listen(source, phrase_time_limit=20)
-        # speech_recognition.WaitTimeoutError
-        print('Recorded audio', audio)
 
-        outfile2 = cache_gtts(text="BEEP. THANK YOU! GIVE ME A SECOND TO READ OUT YOUR POEM")
+        outfile2 = cache_gtts(text="BEEP. THANK YOU! GIVE ME A MINUTE TO GENERATE AND READ YOUR POEM. BEEP")
         play_mp3(outfile2)
 
     t1 = time.time()
@@ -107,8 +105,10 @@ def generate_poem():
         print("Google thinks you said: " + USER_INPUT)
     except sr.UnknownValueError as e:
         print("Could not understand audio. {}".format(e))
+        return 
     except sr.RequestError as e:
         print("Could not request results; {0}".format(e))
+        return
 
     t1b = time.time()
     print('transcribe took', t1b - t1)
@@ -116,18 +116,18 @@ def generate_poem():
     # Generate poem from user seed
     text_generated = poem(USER_INPUT)
     t2 = time.time()
-    print("ML POEM is:", text_generated, 'in', t2 - t1)
+    print("ML POEM is:", text_generated)
+    print('poem and rhyme generation took', t2 - t1)
 
     # TEXT CONVERSION IN AUDIO
     # FEED POEM TO TRANSCRIBER
-    tts = gTTS(text=text_generated, lang="en")
+    tts = gTTS(text=text_generated)
     ts = datetime.datetime.utcnow().strftime('%Y%m%d_%H-%M-%S')
     poem_mp3 = "outputs/BitLit_{}.mp3".format(ts)
     tts.save(poem_mp3)
     play_mp3(poem_mp3)
 
-    print("BIT-LIT ENDING STATEMENT:")
-    outfile = cache_gtts(text="THANK YOU! BEEP.", lang="en")
+    outfile = cache_gtts(text="THANK YOU! BEEP.")
     play_mp3(outfile)
 
     ######
