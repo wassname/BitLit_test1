@@ -2,6 +2,7 @@
 /outputs/
 /snowboy/
 /secrets/
+.pytest_cache/
 
 # Created by https://www.gitignore.io/api/c,c++,cmake,linux,macos,python
 # Edit at https://www.gitignore.io/?templates=c,c++,cmake,linux,macos,python

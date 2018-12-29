@@ -1,76 +1,128 @@
-'''
+"""
 Voice to text to poem to speech
 Credits: Michel, Lauren, Thomas
-'''
+"""
 
-#https://pythonprogramminglanguage.com/text-to-speech/
+# https://pythonprogramminglanguage.com/text-to-speech/
 ## cmd 1::::  sudo pip install gTTS
 ## cmd 2::::  sudo pip install pyttsx
 import sys
-from gtts import gTTS           ## Packages for Text to voice
+from gtts import gTTS  ## Packages for Text to voice
 import os
-import speech_recognition as sr ## Packages for voice recognizer
-import tensorflow as tf
-tf.enable_eager_execution()
-from tensorflow.keras.layers import Embedding, GRU, Dense
+
+
 import numpy as np
 import re
 from textblob import TextBlob
 import random
-from poem_generator import*
+import pyglet
+import json
 import time
-##### KNOWN PARAMETERS
-#######################################################
-##sys.path
-##sys.path.append('/System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python')
-##sys.path.append('/Users/ShebMichel/Library/Python/2.7/lib/python/site-packages'
-################################################################################
-############ AUDIO CONVERSION TO TEST
-t0=time.time()
-r = sr.Recognizer()                                                                                   
-with sr.Microphone() as source:                                                                       
-    tts = gTTS(text='HELLO! My Name is BIT-LIT. PLEASE SPEAK IN ABOUT 3 SECONDS.', lang='en')
-    tts.save("outputs/BitLit.mp3")
-    os.system("afplay outputs/BitLit.mp3")
-#    ######
-    
-    print("SPEAK NOW-SPEAK NOW-SPEAK NOW:")
-    audio = r.listen(source)   
-    tts = gTTS(text='THANK YOU! GIVE ME A SECOND TO READ OUT YOUR POEM', lang='en')
-    tts.save("outputs/BitLit.mp3")
-    os.system("afplay outputs/BitLit.mp3")
-try:
-    # for testing purposes, we're just using the default API key
-    # to use another API key, use `r.recognize_google(audio, key="GOOGLE_SPEECH_RECOGNITION_API_KEY")`
-    # instead of `r.recognize_google(audio)
-    AA0=r.recognize_google(audio)
-    USER_INPUT=AA0
-    print("You said: " + r.recognize_google(audio))
-except sr.UnknownValueError:
-    print("Could not understand audio")
-except sr.RequestError as e:
-    print("Could not request results; {0}".format(e))    
-text_generated=poem(USER_INPUT)
-#### END CODE
-#########################################################
-################# TEXT CONVERSION IN AUDIO
-################# FEED POEM TO TRANSCRIBER
-print('ML POEM is:', text_generated)
-tts = gTTS(text=text_generated, lang='en')
-tts.save("outputs/BitLit.mp3")
-os.system("afplay outputs/BitLit.mp3")
-#########################################################
-####
-print("BIT-LIT ENDING STATEMENT:")   
-tts = gTTS(text='THANK YOU! CHECK ME OUT IN THE NEWS SOON.', lang='en')
-tts.save("outputs/BitLit.mp3")
-os.system("afplay outputs/BitLit.mp3")
-######
-t1   =time.time()
-total=t1-t0
-print 'Time spent is about:', np.round(total), 'seconds'
+import datetime
+import hashlib
+import tempfile
+from logger import logger
 
-### USING JUPITER
-# import IPython.display as ipd
-# ipd.Audio(filename='path/to/file.mp3')
-#tk.mainloop()
+from snowboydecoder import play_audio_file
+
+import speech_recognition as sr  ## Packages for voice recognizer
+for index, name in enumerate(sr.Microphone.list_microphone_names()):
+    logger.debug("Microphone with name \"{1}\" found for `Microphone(device_index={0})`".format(index, name))
+
+from poem_generator import poem
+
+
+# Load credentials
+try:
+    GOOGLE_CLOUD_SPEECH_CREDENTIALS = open("secrets/google_cloud_credentials.json").read()
+except:
+    print('you should place google cloud json credentials at "secrets/google_cloud_credentials.json", make sure you enable the speech recognition api')
+    GOOGLE_CLOUD_SPEECH_CREDENTIALS = None
+
+
+def play_mp3(mp3_file):
+    """Play mp3 file with pyglet."""
+    source = pyglet.media.load(filename=mp3_file, streaming=False)
+    source.play()
+    time.sleep(source.duration + 2)  # must be a better way to wait untill the media has played
+
+
+def cache_gtts(text, lang="en", cache_file=None):
+    """
+    Cache calls to gtts.
+    
+    Saves each to a temporary file
+    """
+    if not cache_file:
+        hash_filename = hashlib.md5(text.encode()).hexdigest() + '.mp3'
+        cache_file = os.path.join(tempfile.gettempdir(), hash_filename)
+    if not os.path.isfile(cache_file):
+        tts = gTTS(text=text, lang="en")
+        tts.save(cache_file)
+    assert os.path.isfile(cache_file)
+    return cache_file
+
+
+def generate_poem():
+
+    # https://github.com/Uberi/speech_recognition/blob/master/reference/library-reference.rst
+    # snowboy_configuration = (SNOWBOY_LOCATION, LIST_OF_HOT_WORD_FILES)
+    snowboy_configuration = ('./snowboy', ['./HiBitLit.pmdl', './snowboy/resources/alexa.umdl', './snowboy/resources/snowboy.umdl'])
+
+    ############ AUDIO CONVERSION TO TEST
+    play_audio_file()
+    t0 = time.time()
+    r = sr.Recognizer()
+    with sr.Microphone() as source:
+        outfile1 = cache_gtts(text="Hi! My Name is BIT-LIT. PLEASE SPEAK. You have 20 seconds before the beep.", lang="en")
+        play_mp3(outfile1)
+
+        print("SPEAK NOW-SPEAK:", source)
+        audio = r.listen(source, timeout=5, phrase_time_limit=20)#, snowboy_configuration=snowboy_configuration)
+        # speech_recognition.WaitTimeoutError
+        print('Recorded audio', audio)
+
+        outfile2 = cache_gtts(text="BEEP. THANK YOU! GIVE ME A SECOND TO READ OUT YOUR POEM", lang="en")
+        play_mp3(outfile2)
+
+    t1 = time.time()
+    print('listen took', t1 - t0)
+
+    try:
+        print("using google speech to text...")
+        USER_INPUT = r.recognize_google_cloud(audio, credentials_json=GOOGLE_CLOUD_SPEECH_CREDENTIALS)
+        print("Google thinks you said: " + USER_INPUT)
+    except sr.UnknownValueError as e:
+        print("Could not understand audio. {}".format(e))
+    except sr.RequestError as e:
+        print("Could not request results; {0}".format(e))
+    # speech_recognition.WaitTimeoutError
+
+    t1b = time.time()
+    print('transcribe took', t1b - t1)
+
+    # Generate poem from user seed
+    text_generated = poem(USER_INPUT)
+    t2 = time.time()
+    print("ML POEM is:", text_generated, 'in', t2 - t1)
+
+    # TEXT CONVERSION IN AUDIO
+    # FEED POEM TO TRANSCRIBER
+    tts = gTTS(text=text_generated, lang="en")
+    ts = datetime.datetime.utcnow().strftime('%Y%m%d_%H-%M-%S')
+    poem_mp3 = "outputs/BitLit_{}.mp3".format(ts)
+    tts.save(poem_mp3)
+    play_mp3(poem_mp3)
+
+    print("BIT-LIT ENDING STATEMENT:")
+    outfile = cache_gtts(text="THANK YOU! CHECK ME OUT IN THE NEWS SOON.", lang="en")
+    play_mp3(outfile)
+
+    ######
+    t3 = time.time()
+    print('Poem to speech took', t3 - t2)
+    print("Time spent is about:", np.round(t3 - t0), "seconds")
+
+
+if __name__ == "__main__":
+    generate_poem()

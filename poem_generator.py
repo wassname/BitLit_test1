@@ -7,14 +7,16 @@ import sys
 from gtts import gTTS           ## Packages for Text to voice
 import os
 import numpy as np
-import speech_recognition as sr ## Packages for voice recognizer
+import speech_recognition as sr  ## Packages for voice recognizer
+
+os.environ['CUDA_VISIBLE_DEVICES']=""
 import tensorflow as tf
 tf.enable_eager_execution()
 from tensorflow.keras.layers import Embedding, GRU, Dense
 import re
 from textblob import TextBlob
 import random
-from BitLit_param import*
+from BitLit_param import *
 
 # Architechture of the GRU
 
@@ -103,10 +105,9 @@ def poem(USER_INPUT):
     ### ML POEM PREDICTOR
     
     
-            ###########################
-            #  USER INPUT a line      #
-            ###########################
-    
+    ###########################
+    #  USER INPUT a line      #
+    ###########################
     USER_INPUT = USER_INPUT.lower()
     USER_INPUT = re.sub('[^a-z\n]', ' ', USER_INPUT)
     text_generated = USER_INPUT[::-1]
@@ -114,11 +115,9 @@ def poem(USER_INPUT):
     
     
     
-            ######################
-            #  RHYMES GENERATION #
-            ######################
-            
-            
+    ######################
+    #  RHYMES GENERATION #
+    ######################          
     temperature = 0.09
     
     num_generate = 5  # number of characters to generate
@@ -145,9 +144,9 @@ def poem(USER_INPUT):
     print('rhymes:', rhymes)
     
     
-            ####################
-            #  POEM GENERATION #
-            ####################
+    ####################
+    #  POEM GENERATION #
+    ####################
     
     
     temperature = 0.8

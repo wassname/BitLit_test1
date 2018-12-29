@@ -10,10 +10,11 @@ import signal
 
 ####
 from gtts import gTTS           ## Packages for Text to voice
-import speech_recognition as sr ## Packages for voice recognizer
-import tensorflow as tf
-tf.enable_eager_execution()
-from tensorflow.keras.layers import Embedding, GRU, Dense
+import speech_recognition as sr  ## Packages for voice recognizer
+import BitLit_main
+# import tensorflow as tf
+# tf.enable_eager_execution()
+# from tensorflow.keras.layers import Embedding, GRU, Dense
 import numpy as np
 import re
 from textblob import TextBlob
@@ -21,10 +22,10 @@ import random
 import poem_generator           ## POEM GENERATOR IMPORT
 from poem_generator import*
 import time
-####
+
+
 t0=time.time()   ## Time counter
 interrupted = False
-
 
 def signal_handler(signal, frame):
     global interrupted
@@ -48,20 +49,10 @@ signal.signal(signal.SIGINT, signal_handler)
 detector = snowboydecoder.HotwordDetector(model, sensitivity=0.5)
 print('Listening... Press Ctrl+C to exit')
 
-# main loop
-detector.start(detected_callback=snowboydecoder.run,
-              interrupt_check=interrupt_callback, 
-               sleep_time=0.01)
-##detector.start(detected_callback=snowboydecoder.play_audio_file,
-##              interrupt_check=interrupt_callback, 
-##               sleep_time=0.00)
-##detector.start(detected_callback= os.system('python BitLit_main.py'),
-##              interrupt_check=interrupt_callback, 
-##               sleep_time=0.00) ##0.03
-#import BitLit_main
-##detector.start(detected_callback=BitLit_main,
-##              interrupt_check=interrupt_callback,
-##              sleep_time=0.03)
+
+detector.start(detected_callback=BitLit_main.generate_poem,
+             interrupt_check=interrupt_callback,
+             sleep_time=0.03)
 
 detector.terminate()
 t1   =time.time()

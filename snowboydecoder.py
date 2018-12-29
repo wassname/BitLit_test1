@@ -19,7 +19,6 @@ TOP_DIR = os.path.dirname(os.path.abspath(__file__))
 RESOURCE_FILE = os.path.join(TOP_DIR, "snowboy/resources/common.res")
 DETECT_DING = os.path.join(TOP_DIR, "snowboy/resources/ding.wav")
 DETECT_DONG = os.path.join(TOP_DIR, "snowboy/resources/dong.wav")
-DETECT_PY   = os.path.join(TOP_DIR, "BitLit_main.py")  ## ADDED
 
 
 class RingBuffer(object):
@@ -37,9 +36,7 @@ class RingBuffer(object):
         self._buf.clear()
         return tmp
 
-###
-def run(fname=DETECT_PY):
-    Py_wav=os.system('python BitLit_main.py')
+
 ###    
 def play_audio_file(fname=DETECT_DING):
     """Simple callback function to play a wave file. By default it plays
