@@ -12,18 +12,18 @@ This will start snowboy listening for the phrase "Hi BitLit". Then it will ask f
 - clone the repositry
 
 Requirements:
--	Python2, pip
+-	Python3, pip
 - for mac
   - Brew (mac: sudo apt-get install linuxbrew-wrapper)
   - PIP (sudo apt-get install python-pip)
   - PortAudio (mac: brew install portaudio)
 - for ubuntu:
-  - PortAudio (sudo apt install portaudio19-dev)
+  - PortAudio (sudo apt install portaudio19-dev python3-portaudio)
 - python package `pip install -r requirements.txt`
 - snowboy v1.1.1 
   - either get
     - a precompiled version for you platform and python version here (http://docs.kitt.ai/snowboy/#downloads) 
-    - or compile it yourself by cloning the repo, then going into swig/python and running make
+    - or compile it yourself by cloning the repo, then going into swig/python and running make (sudo apt install python3-all-dev)
   - Copy the resources folder and the compiled files into the snowboy subdirectory.
 
 
