@@ -19,9 +19,19 @@ Requirements:
   - PortAudio (mac: brew install portaudio)
 - for ubuntu:
   - PortAudio (sudo apt install portaudio19-dev)
-- gTTS (pip install gTTS)
-- SpeechRecognition (pip install SpeechRecognition)
-- PyAudio  (pip install pyaudio) 
-- Tensorflow (pip install tensorflow)
-- Unzip SNOWBOY v1.1.1 (http://docs.kitt.ai/snowboy/#downloads)
+- python package `pip install -r requirements.txt`
+- snowboy v1.1.1 
+  - either get
+    - a precompiled version for you platform and python version here (http://docs.kitt.ai/snowboy/#downloads) 
+    - or compile it yourself by cloning the repo, then going into swig/python and running make
+  - Copy the resources folder and the compiled files into the snowboy subdirectory.
 
+
+API Keys:
+- `cp secrets.template.json to secrets.json`
+- get an API key for google cloud
+  - make a project or use an existing project
+  - download a credentials json for that project
+  - enable the speech recognition api https://console.cloud.google.com/apis/api/speech.googleapis.com/overview
+  - put the credentials in `./secrets/google_cloud_credintials.json`
+  - never commit this file!
