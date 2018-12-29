@@ -2,19 +2,9 @@
 Voice to text to poem to speech
 Credits: Michel, Lauren, Thomas
 """
-
-import sys
-from gtts import gTTS  ## Packages for Text to voice
 import os
 import numpy as np
-import speech_recognition as sr  ## Packages for voice recognizer
 
-# To try without cuda
-os.environ["CUDA_VISIBLE_DEVICES"] = ""
-import tensorflow as tf
-
-tf.enable_eager_execution()
-from tensorflow.keras.layers import Embedding, GRU, Dense
 import re
 from textblob import TextBlob
 import random
@@ -23,7 +13,6 @@ from BitLit_model_param import (
     parameters_poems,
     char2idx_poems,
     units_poems,
-    embedding_dim_poems,
     gru_weights_poems,
     fc_weights_poems,
     embedding_weights_poems,
@@ -34,7 +23,21 @@ from BitLit_model_param import (
     units_rhymes,
     idx2word_rhymes,
     idx2char_poems,
+    vocab_size_poems,
+    vocab_size_rhymes,
+    units_poems,
+    units_rhymes,
+    embedding_dim_poems,
+    embedding_dim_rhymes,
+    BATCH_SIZE_poems,
+    BATCH_SIZE_rhymes
 )
+
+# To try without cuda
+os.environ["CUDA_VISIBLE_DEVICES"] = ""
+import tensorflow as tf
+tf.enable_eager_execution()
+from tensorflow.keras.layers import Embedding, GRU, Dense
 
 # Architechture of the GRU
 
@@ -63,8 +66,9 @@ class Model(tf.keras.Model):
 
 
 # Creation of the poem models and rhymes model
-model_poems = Model(**parameters_poems)
-model_rhymes = Model(**parameters_rhymes)
+model_poems = Model(vocab_size_poems, embedding_dim_poems, units_poems, BATCH_SIZE_poems)
+model_rhymes = Model(vocab_size_rhymes, embedding_dim_rhymes, units_rhymes, BATCH_SIZE_rhymes)
+
 
 
 # Set the weights for the poems model
