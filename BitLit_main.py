@@ -42,9 +42,10 @@ except:
 
 def play_mp3(mp3_file):
     """Play mp3 file with pyglet."""
+    # FIXME (wassname) It currently plays in background but we want to wait untill it's finished
     source = pyglet.media.load(filename=mp3_file, streaming=False)
     source.play()
-    time.sleep(source.duration + 2)  # must be a better way to wait untill the media has played
+    time.sleep(source.duration*2 + 2)  # TODO must be a better way to wait untill the media has played
 
 
 def cache_gtts(text, lang="en-nz", cache_file=None):
@@ -88,10 +89,13 @@ def generate_poem():
     t0 = time.time()
     r = sr.Recognizer()
     with sr.Microphone() as source:
-        outfile1 = cache_gtts(text="Hi! My Name is BIT-LIT. PLEASE SPEAK SOME IDEAS FOR A POEM. You have 20 seconds before the beep.")
+        outfile1 = cache_gtts(text="Hi! My Name is BIT-LIT. PLEASE SPEAK SOME IDEAS FOR A POEM between the beeps.")
         play_mp3(outfile1)
 
+        play_audio_file()
+
         audio = r.listen(source, phrase_time_limit=20)
+        play_audio_file()
 
         outfile2 = cache_gtts(text="BEEP. THANK YOU! GIVE ME A MINUTE TO GENERATE AND READ YOUR POEM. BEEP")
         play_mp3(outfile2)
@@ -116,14 +120,14 @@ def generate_poem():
     # Generate poem from user seed
     text_generated = poem(USER_INPUT)
     t2 = time.time()
-    print("ML POEM is:", text_generated)
-    print('poem and rhyme generation took', t2 - t1)
+    logger.info("ML POEM is: %s", text_generated)
+    logger.info('poem and rhyme generation took %s', t2 - t1)
 
     # TEXT CONVERSION IN AUDIO
     # FEED POEM TO TRANSCRIBER
     tts = gTTS(text=text_generated)
-    ts = datetime.datetime.utcnow().strftime('%Y%m%d_%H-%M-%S')
-    poem_mp3 = "outputs/BitLit_{}.mp3".format(ts)
+    # ts = datetime.datetime.utcnow().strftime('%Y%m%d_%H-%M-%S')
+    poem_mp3 = "outputs/BitLit_poem.mp3"#.format(ts)
     tts.save(poem_mp3)
     play_mp3(poem_mp3)
 
@@ -132,8 +136,8 @@ def generate_poem():
 
     ######
     t3 = time.time()
-    print('Poem to speech took', t3 - t2)
-    print("Time spent is about:", np.round(t3 - t0), "seconds")
+    logger.info('Poem to speech took %s', t3 - t2)
+    logger.info("Time spent is about: %s seconds")
 
 
 if __name__ == "__main__":
