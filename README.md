@@ -42,35 +42,43 @@ API Keys:
 
 When setup the layout should look something like
 
-  ├── BitLit_decoder.py
-  ├── BitLit_main.py
-  ├── BitLit_main.pyc
-  ├── BitLit_model_param.py
-  ├── BitLit_model_param.pyc
-  ├── HiBitLit.pmdl
-  ├── README.md
-  ├── logger.py
-  ├── logger.pyc
-  ├── outputs
-  ├── poem_generator.py
-  ├── poem_generator.pyc
-  ├── requirements.txt
-  ├── secrets
-  │   ├── google_cloud_credentials.json
-  │   └── google_cloud_credentials.template.json
-  ├── snowboy
-  │   ├── _snowboydetect.so
-  │   ├── resources
-  │   │   ├── alexa.umdl
-  │   │   ├── alexa_02092017.umdl
-  │   │   ├── common.res
-  │   │   ├── ding.wav
-  │   │   ├── dong.wav
-  │   │   └── snowboy.umdl
-  │   ├── snowboydetect.py
-  │   └── snowboydetect.pyc
-  ├── snowboydecoder.py
-  ├── snowboydecoder.pyc
-  └── weights
-    ├── model_poems.npy
-    └── model_rhymes.npy
+```
+    ├── BitLit_decoder.py
+    ├── BitLit_main.py
+    ├── BitLit_main.pyc
+    ├── BitLit_model_param.py
+    ├── BitLit_model_param.pyc
+    ├── HiBitLit.pmdl
+    ├── README.md
+    ├── logger.py
+    ├── logger.pyc
+    ├── outputs
+    ├── poem_generator.py
+    ├── poem_generator.pyc
+    ├── requirements.txt
+    ├── secrets
+    │   ├── google_cloud_credentials.json
+    │   └── google_cloud_credentials.template.json
+    ├── snowboy
+    │   ├── _snowboydetect.so
+    │   ├── resources
+    │   │   ├── alexa.umdl
+    │   │   ├── alexa_02092017.umdl
+    │   │   ├── common.res
+    │   │   ├── ding.wav
+    │   │   ├── dong.wav
+    │   │   └── snowboy.umdl
+    │   ├── snowboydetect.py
+    │   └── snowboydetect.pyc
+    ├── snowboydecoder.py
+    ├── snowboydecoder.pyc
+    └── weights
+      ├── model_poems.npy
+      └── model_rhymes.npy
+```
+
+# TODO
+
+- [ ] make sure text logging works
+- [ ] improve before and after text
+- [ ] it start recording while prompt is playing?
