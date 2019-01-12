@@ -32,6 +32,8 @@ for index, name in enumerate(sr.Microphone.list_microphone_names()):
 from poem_generator import poem
 
 
+snowboy_configuration = ('./snowboy', os.listdir('hotwords'))
+
 # Load credentials
 try:
     GOOGLE_CLOUD_SPEECH_CREDENTIALS = open("secrets/google_cloud_credentials.json").read()
@@ -45,7 +47,7 @@ def play_mp3(mp3_file):
     source = pyglet.media.load(filename=mp3_file, streaming=False)
     source.play()
     print(mp3_file, source.duration)
-    time.sleep(source.duration + 4)  # must be a better way to wait untill the media has played
+    time.sleep(source.duration + 2)  # must be a better way to wait untill the media has played
     print(mp3_file, source.duration)
 
 def cache_gtts(text, lang="en-nz", cache_file=None):
@@ -80,6 +82,10 @@ def cache_gtts(text, lang="en-nz", cache_file=None):
         tts.save(cache_file)
     return cache_file
 
+def speak(text):
+    mp3_file = cache_gtts(text)
+    play_mp3(mp3_file)
+
 
 def generate_poem():
 
@@ -89,67 +95,70 @@ def generate_poem():
     t0 = time.time()
     r = sr.Recognizer()
     with sr.Microphone() as source:
-
-        # print(r.energy_threshold)
-        # r.adjust_for_ambient_noise(source) 
-        # print('energy_threshold', r.energy_threshold)
-        r.energy_threshold=50
-
-
         print('mic', source)
-        outfile1 = cache_gtts(text="Hi! My Name is BIT-LIT. PLEASE SPEAK SOME IDEAS FOR A POEM AFTER THE BEEP.")
-        play_mp3(outfile1)
+        speak('please be quiet while I calibrate the microphones. I will ding when I am finished')
+        time.sleep(5)
+        r.pause_threshold = 5
+        r.adjust_for_ambient_noise(source) 
+        print('calibrate mic energy_threshold to', r.energy_threshold)
+        speak('Thanks. When you want to talk to me say "Hi BitLit"')
         play_ding()
 
-        print('speak now', time.time())
-        audio = r.listen(source)
-        logger.debug('done recording %s', time.time())
-        logger.info('recorded %s s', len(audio.frame_data)/audio.sample_rate)
+        while True:
+            print('waiting for hotword "Hi BitLit" or Alexa or SnowBoy')
+            audio_null = r.listen(source, snowboy_configuration=snowboy_configuration)
+            play_dong()
 
-        play_dong()
-        outfile2 = cache_gtts(text="BEEP. THANK YOU! GIVE ME A MINUTE TO GENERATE AND READ YOUR POEM")
-        play_mp3(outfile2)
+            speak(text="Hi! My Name is BIT-LIT. PLEASE SPEAK SOME IDEAS FOR A POEM AFTER THE DING.")
+            play_ding()
 
-    t1 = time.time()
-    logger.debug('listen took %s', t1 - t0)
+            print('speak now', time.time())
+            try:
+                audio = r.listen(source, timeout=30, phrase_time_limit=30)
+            except sr.WaitTimeoutError as e:
+                print('WaitTimeoutError', e)
+                continue
+            logger.debug('done recording %s', time.time())
+            logger.info('recorded %s s', len(audio.frame_data)/audio.sample_rate)
 
-    try:
-        logger.debug("using google speech to text...")
-        USER_INPUT = r.recognize_google_cloud(audio, credentials_json=GOOGLE_CLOUD_SPEECH_CREDENTIALS)
-        logger.info("Google thinks you said: " + USER_INPUT)
-    except sr.UnknownValueError as e:
-        logger.error("Could not understand audio. {}".format(e))
-        return 
-    except sr.RequestError as e:
-        logger.error("Could not request results; {0}".format(e))
-        return
+            play_dong()
+            speak(text="BEEP. THANK YOU! GIVE ME A MINUTE TO GENERATE AND READ YOUR POEM")
 
-    t1b = time.time()
-    logger.debug('transcribe took %s', t1b - t1)
+            t1 = time.time()
+            logger.debug('listen took %s', t1 - t0)
 
-    return
+            try:
+                logger.debug("using google speech to text...")
+                USER_INPUT = r.recognize_google_cloud(audio, credentials_json=GOOGLE_CLOUD_SPEECH_CREDENTIALS)
+                logger.info("Google thinks you said: " + USER_INPUT)
+            except sr.UnknownValueError as e:
+                logger.error("Could not understand audio. {}".format(e))
+                return 
+            except sr.RequestError as e:
+                logger.error("Could not request results; {0}".format(e))
+                return
 
-    # Generate poem from user seed
-    text_generated = poem(USER_INPUT)
-    t2 = time.time()
-    logger.info("ML POEM is: %s", text_generated)
-    logger.debug('poem and rhyme generation took %s', t2 - t1)
+            t1b = time.time()
+            logger.debug('transcribe took %s', t1b - t1)
 
-    # TEXT CONVERSION IN AUDIO
-    # FEED POEM TO TRANSCRIBER
-    tts = gTTS(text=text_generated)
-    ts = datetime.datetime.utcnow().strftime('%Y%m%d_%H-%M-%S')
-    poem_mp3 = "outputs/BitLit_{}.mp3".format(ts)
-    tts.save(poem_mp3)
-    play_mp3(poem_mp3)
+            # Generate poem from user seed
+            text_generated = poem(USER_INPUT)
+            t2 = time.time()
+            logger.info("ML POEM is: %s", text_generated)
+            logger.debug('poem and rhyme generation took %s', t2 - t1)
 
-    outfile = cache_gtts(text="THANK YOU! BEEP.")
-    play_mp3(outfile)
+            # FEED POEM TO TRANSCRIBER
+            tts = gTTS(text=text_generated)
+            poem_mp3 = "outputs/BitLit_poem.mp3"
+            tts.save(poem_mp3)
+            play_mp3(poem_mp3)
 
-    ######
-    t3 = time.time()
-    logger.debug('Poem to speech took %s', t3 - t2)
-    logger.debug("Total time spent is about: %s seconds", np.round(t3 - t0))
+            speak(text="THANK YOU! BEEP.")
+
+            ######
+            t3 = time.time()
+            logger.debug('Poem to speech took %s', t3 - t2)
+            logger.debug("Total time spent is about: %s seconds", np.round(t3 - t0))
 
 
 if __name__ == "__main__":
