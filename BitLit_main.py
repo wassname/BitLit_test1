@@ -46,7 +46,7 @@ except:
 def play_mp3(mp3_file):
     """Play mp3 file with pyglet."""
     source = pyglet.media.load(filename=mp3_file, streaming=False)
-    logger.debug('playing %s second file')
+    logger.debug('playing %s second file', source.duration)
     source.play()
     time.sleep(source.duration + 2)  # must be a better way to wait untill the media has played
 
@@ -57,7 +57,7 @@ def cache_gtts(text, lang=lang, cache_file=None):
     Saves each to a temporary file
 
     languages 
-      en-au: English (Australia)
+        en-au: English (Australia)
         en-ca: English (Canada)
         en-gb: English (UK)
         en-gh: English (Ghana)
