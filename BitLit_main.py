@@ -176,7 +176,10 @@ def generate_poem():
             speak('DEBUG: your rhymes are '+ ' '.join(rhymes))
 
         # FEED POEM TO TRANSCRIBER
-        speak(text=text_generated, cache_file="outputs/BitLit_last_poem.mp3")
+        cache_file = "outputs/BitLit_last_poem.mp3"
+        tts = gTTS(text=text, lang=lang)
+        tts.save(cache_file)
+        play_mp3(cache_file)
 
         if random.random()>0.90:
             speak(text="THANK YOU!")
