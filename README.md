@@ -3,7 +3,7 @@ Forked from https://github.com/ShebMichel/BitLit_test1
 
 # Run
 To run the program once installed 
->> python BitLit_decoder.py HiBitLit.pmdl
+>> python3 BitLit_main.py
 
 This will start snowboy listening for the phrase "Hi BitLit". Then it will ask for seed phrases for a poem.
 

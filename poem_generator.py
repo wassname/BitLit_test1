@@ -145,8 +145,6 @@ def poem(USER_INPUT):
         input_eval = tf.expand_dims([predicted_id], 0)
         rhymes += [idx2word_rhymes[predicted_id]]
 
-    logger.info("rhymes: %s", rhymes)
-
     ####################
     #  POEM GENERATION #
     ####################
@@ -184,4 +182,4 @@ def poem(USER_INPUT):
 
     text_generated = re.sub(" +", " ", text_generated)
     text_generated = str(TextBlob(text_generated).correct())
-    return text_generated
+    return text_generated, rhymes
