@@ -13,7 +13,7 @@ import tempfile
 
 # To use differen't log level for file and console
 timestamp = datetime.datetime.utcnow().strftime('%Y%m%d_%H-%M-%S')
-filename = os.path.join(tempfile.gettempdir(), '/tmp/bitlit_log_{}.log'.format(timestamp))
+filename ='./outputs/bitlit_log_{}.log'.format(timestamp)
 formatter = logging.Formatter('[%(asctime)s] %(name)s {%(filename)s:%(lineno)d} %(levelname)s - %(message)s')
 
 file_handler = logging.FileHandler(filename=filename)
