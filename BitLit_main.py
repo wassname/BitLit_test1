@@ -118,79 +118,87 @@ def generate_poem():
     play_dong()
 
     while True:
-        speak('When you want me to make a poem summon me with "Hi BitLit" or by my nicknames "computer", "snowboy", or "Hey Extreme"')
-        play_ding()
-        with sr.Microphone() as source:
-            audio_hotword = r.listen(source, snowboy_configuration=snowboy_configuration)
-        if DEBUG:
-            record_audio(audio_hotword, "outputs/hotword-results.flac", play=DEBUG)
-        play_dong()
-
-        speak(text="Hi Humans! My Name is BIT-LIT. Please inspire me with the first line of a poem. You may speak for 20 seconds after the bing.")
-
-        play_ding()
-        with sr.Microphone() as source:
-            audio = r.record(source, duration=20)
-        play_dong()
-
-        # write audio to a WAV file for debugging
-        if DEBUG:
-            record_audio(audio, "outputs/record-results.flac", play=DEBUG)
-
-        logger.debug('done recording %s', time.time())
-        logger.info('recorded %s s', len(audio.frame_data)/audio.sample_rate)
-
-        speak(text="THANK YOU! GIVE ME A MINUTE TO GENERATE AND READ YOUR POEM")
-
-        t1 = time.time()
-        logger.debug('listen took %s', t1 - t0)
-
         try:
-            logger.debug("using google speech to text...")
-            USER_INPUT = r.recognize_google_cloud(audio, credentials_json=GOOGLE_CLOUD_SPEECH_CREDENTIALS)
-            logger.info("Google thinks you said: " + USER_INPUT)
-        except sr.UnknownValueError as e:
-            logger.error("Could not understand audio. {}".format(e))
-            speak("I could not understand that audio")
-            continue 
-        except sr.RequestError as e:
-            logger.error("Could not request results; {0}".format(e))
-            speak("I'm sorry I could not communicate with the speech to _text the internet'")
-            continue
+            speak('When you want me to make a poem summon me with "Hi BitLit" or by my nicknames "computer", "snowboy", or "Hey Extreme"')
+            play_ding()
+            with sr.Microphone() as source:
+                audio_hotword = r.listen(source, snowboy_configuration=snowboy_configuration)
+            if DEBUG:
+                record_audio(audio_hotword, "outputs/hotword-results.flac", play=DEBUG)
+            play_dong()
 
-        t1b = time.time()
-        logger.debug('transcribe took %s', t1b - t1)
+            speak(text="Hi Humans! My Name is BIT-LIT. Please inspire me with the first line of a poem. You may speak for 20 seconds after the bing.")
 
-        if DEBUG:
-            speak('DEBUG: I think you said %s' % USER_INPUT)
+            play_ding()
+            with sr.Microphone() as source:
+                audio = r.record(source, duration=20)
+            play_dong()
 
-        # Generate poem from user seed
-        text_generated, rhymes = poem(USER_INPUT)
-        t2 = time.time()
-        logger.info("rhymes: %s", rhymes)
-        logger.info("ML POEM is: %s", text_generated)
-        logger.debug('poem and rhyme generation took %s', t2 - t1)
+            # write audio to a WAV file for debugging
+            if DEBUG:
+                record_audio(audio, "outputs/record-results.flac", play=DEBUG)
 
-        if DEBUG:
-            speak('DEBUG: your rhymes are '+ ' '.join(rhymes))
+            logger.debug('done recording %s', time.time())
+            logger.info('recorded %s s', len(audio.frame_data)/audio.sample_rate)
 
-        # FEED POEM TO TRANSCRIBER
-        cache_file = "outputs/BitLit_last_poem.mp3"
-        tts = gTTS(text=text_generated, lang=lang)
-        tts.save(cache_file)
-        play_mp3(cache_file)
+            speak(text="THANK YOU! GIVE ME A MINUTE TO GENERATE AND READ YOUR POEM")
 
-        if random.random()>0.90:
-            speak(text="THANK YOU!")
-        else:
-            speak(text="THANK YOU PUNY HUMANS.")
+            t1 = time.time()
+            logger.debug('listen took %s', t1 - t0)
 
-        ######
-        t3 = time.time()
-        logger.debug('Poem to speech took %s', t3 - t2)
-        logger.debug("Total time spent is about: %s seconds", np.round(t3 - t0))
+            try:
+                logger.debug("using google speech to text...")
+                USER_INPUT = r.recognize_google_cloud(audio, credentials_json=GOOGLE_CLOUD_SPEECH_CREDENTIALS)
+                logger.info("Google thinks you said: " + USER_INPUT)
+            except sr.UnknownValueError as e:
+                logger.error("Could not understand audio. {}".format(e))
+                speak("I could not understand that audio")
+                continue 
+            except sr.RequestError as e:
+                logger.error("Could not request results; {0}".format(e))
+                speak("I'm sorry I could not communicate with the speech to _text the internet'")
+                continue
 
-        play_ding()
+            t1b = time.time()
+            logger.debug('transcribe took %s', t1b - t1)
+
+            if DEBUG:
+                speak('DEBUG: I think you said %s' % USER_INPUT)
+
+            # Generate poem from user seed
+            text_generated, rhymes = poem(USER_INPUT)
+            t2 = time.time()
+            logger.info("rhymes: %s", rhymes)
+            logger.info("ML POEM is: %s", text_generated)
+            logger.debug('poem and rhyme generation took %s', t2 - t1)
+
+            if DEBUG:
+                speak('DEBUG: your rhymes are '+ ' '.join(rhymes))
+
+            # FEED POEM TO TRANSCRIBER
+            cache_file = "outputs/BitLit_last_poem.mp3"
+            tts = gTTS(text=text_generated, lang=lang)
+            tts.save(cache_file)
+            play_mp3(cache_file)
+
+            if random.random()>0.90:
+                speak(text="THANK YOU!")
+            else:
+                speak(text="THANK YOU PUNY HUMANS.")
+
+            ######
+            t3 = time.time()
+            logger.debug('Poem to speech took %s', t3 - t2)
+            logger.debug("Total time spent is about: %s seconds", np.round(t3 - t0))
+
+            play_ding()
+        except KeyboardInterrupt as e:
+            raise 
+        except Exception as e:
+            speak("Oh no I had an error I will try again in one minute")
+            speak("The error was %s" % e)
+            time.sleep(60)
+
 
 
 if __name__ == "__main__":
