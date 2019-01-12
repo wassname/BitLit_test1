@@ -60,6 +60,13 @@ def play_audio_file(fname=DETECT_DING):
     audio.terminate()
 
 
+def play_ding():
+    play_audio_file(fname=DETECT_DING)
+
+def play_dong():
+    play_audio_file(fname=DETECT_DONG)
+
+
 class HotwordDetector(object):
     """
     Snowboy decoder to detect whether a keyword specified by `decoder_model`

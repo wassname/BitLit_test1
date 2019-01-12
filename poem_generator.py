@@ -2,9 +2,11 @@
 Voice to text to poem to speech
 Credits: Michel, Lauren, Thomas
 """
+from __future__ import print_function
 import os
 import numpy as np
 
+from logger import logger
 import re
 from textblob import TextBlob
 import random
@@ -120,7 +122,7 @@ def poem(USER_INPUT):
         start_string = [first_rhyme]
     else:
         start_string = [random.choice(list(word2idx_rhymes.keys()))]
-        print("The word {} is not in our corpus of rhymes yet.".format(first_rhyme))
+        logger.error("The word {} is not in our corpus of rhymes yet.".format(first_rhyme))
     input_eval = [
         word2idx_rhymes[s] for s in start_string
     ]  # converts start_string to numbers the model understands
@@ -143,7 +145,7 @@ def poem(USER_INPUT):
         input_eval = tf.expand_dims([predicted_id], 0)
         rhymes += [idx2word_rhymes[predicted_id]]
 
-    print("rhymes:", rhymes)
+    logger.info("rhymes:", rhymes)
 
     ####################
     #  POEM GENERATION #

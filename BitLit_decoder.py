@@ -1,16 +1,19 @@
 ####  RUNNING THE MODEL
-# Michels-MacBook-Pro:~ ShebMichel$ cd documents/pmlg/wake/decoder
-# Michels-MacBook-Pro:decoder ShebMichel$ python demo.py resources/HiBitLit.pmdl
+# cd documents/pmlg/wake/decoder
+# python demo.py resources/HiBitLit.pmdl
+from __future__ import print_function
 import os
 import sys
 
 import snowboydecoder
+from snowboydecoder import play_ding, play_dong
 import signal
 
-import numpy as np
 import time
+import numpy as np
 
 import BitLit_main
+
 
 t0 = time.time()  ## Time counter
 interrupted = False
@@ -36,10 +39,9 @@ model = sys.argv[1]
 # capture SIGINT signal, e.g., Ctrl+C
 signal.signal(signal.SIGINT, signal_handler)
 
-
-detector = snowboydecoder.HotwordDetector(model, sensitivity=0.75)
-print("Listening for hotword (Hi BitLit)... Press Ctrl+C to exit")
-snowboydecoder.play_audio_file()
+play_ding()
+detector = snowboydecoder.HotwordDetector(model, sensitivity=0.5)
+print("Listening... Press Ctrl+C to exit")
 
 
 detector.start(
