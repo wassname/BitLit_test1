@@ -31,8 +31,8 @@ for index, name in enumerate(sr.Microphone.list_microphone_names()):
 
 from poem_generator import poem
 
-DEBUG = True
-
+DEBUG = False
+lang="en-nz"
 snowboy_configuration = ('./snowboy', glob.glob('hotwords/*'))
 
 # Load credentials
@@ -50,7 +50,7 @@ def play_mp3(mp3_file):
     source.play()
     time.sleep(source.duration + 2)  # must be a better way to wait untill the media has played
 
-def cache_gtts(text, lang="en-nz", cache_file=None):
+def cache_gtts(text, lang=lang, cache_file=None):
     """
     Cache calls to gtts.
     
@@ -73,7 +73,7 @@ def cache_gtts(text, lang="en-nz", cache_file=None):
         en: English
 
     """
-    logger.info('%s say: %s', lang, text)
+    logger.info('bitlit says: %s', text)
     if not cache_file:
         hash_filename = hashlib.md5(text.encode()).hexdigest() + lang + '.mp3'
         cache_file = os.path.join(tempfile.gettempdir(), hash_filename)
@@ -82,7 +82,7 @@ def cache_gtts(text, lang="en-nz", cache_file=None):
         tts.save(cache_file)
     return cache_file
 
-def speak(text, lang="en-nz", cache_file=None):
+def speak(text, lang=lang, cache_file=None):
     mp3_file = cache_gtts(text, lang=lang, cache_file=cache_file)
     play_mp3(mp3_file)
 
@@ -101,25 +101,24 @@ def generate_poem():
     if DEBUG:
         speak("I'm in debug mode")
 
-
     ############ AUDIO CONVERSION TO TEST
     play_dong()
     t0 = time.time()
     r = sr.Recognizer()
 
-    speak("Hi I'm bit-lit. Silence Humans. I must calibrate the microphone. I will ding when I am finished")
+    speak("Hi I'm bit-lit. Silence puny Humans. I must calibrate the microphone. I will make a dong sound when I am finished")
     time.sleep(2)
     with sr.Microphone() as source:
         logger.debug('microphone source is %s', source)
-        r.adjust_for_ambient_noise(source, duration=2) 
-    r.energy_threshold = max(r.energy_threshold, 50)
-    r.energy_threshold = min(r.energy_threshold, 500)
-
+        r.adjust_for_ambient_noise(source, duration=6) 
     logger.info('calibrate mic energy_threshold to %s', r.energy_threshold)
+    # r.energy_threshold = max(r.energy_threshold, 25)
+    # r.energy_threshold = min(r.energy_threshold, 300)
+    # logger.info('calibrate mic energy_threshold to %s', r.energy_threshold)
     play_dong()
 
     while True:
-        speak('When you want me to make a poem say "Hi BitLit" or Alexa or Snowboy')
+        speak('When you want me to make a poem summon me with "Hi BitLit" or by my nicknames "computer", "snowboy", or "Hey Extreme"')
         play_ding()
         with sr.Microphone() as source:
             audio_hotword = r.listen(source, snowboy_configuration=snowboy_configuration)
@@ -127,7 +126,7 @@ def generate_poem():
             record_audio(audio_hotword, "outputs/hotword-results.flac", play=DEBUG)
         play_dong()
 
-        speak(text="Hi! My Name is BIT-LIT. Please speak some ideas for a poem after the bing. You have 20 seconds.")
+        speak(text="Hi Humans! My Name is BIT-LIT. Please inspire me with the first line of a poem. You may speak for 20 seconds after the bing.")
 
         play_ding()
         with sr.Microphone() as source:
@@ -177,7 +176,7 @@ def generate_poem():
 
         # FEED POEM TO TRANSCRIBER
         cache_file = "outputs/BitLit_last_poem.mp3"
-        tts = gTTS(text=text, lang=lang)
+        tts = gTTS(text=text_generated, lang=lang)
         tts.save(cache_file)
         play_mp3(cache_file)
 
