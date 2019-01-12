@@ -1,5 +1,5 @@
 PyAudio==0.2.9
-gTTS==2.0.1
+gTTS==2.0.3
 SpeechRecognition==3.8.1
 tensorflow==1.10.1
 # or tensorflow-gpu==1.10.1
