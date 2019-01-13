@@ -16,19 +16,18 @@ import re
 import random
 import pyglet
 import json
+import logging
 import time
 import datetime
 import hashlib
 import tempfile
 import glob
 from logger import logger
-
+import argparse
 from snowboydecoder import play_ding, play_dong
 
-import speech_recognition as sr  ## Packages for voice recognizer
-for index, name in enumerate(sr.Microphone.list_microphone_names()):
-    logger.debug("Microphone with name \"{1}\" found for `Microphone(device_index={0})`".format(index, name))
-
+## Packages for voice recognizer
+import speech_recognition as sr  
 from poem_generator import poem
 
 DEBUG = False
@@ -48,7 +47,7 @@ def play_mp3(mp3_file):
     source = pyglet.media.load(filename=mp3_file, streaming=False)
     logger.debug('playing %s second file', source.duration)
     source.play()
-    time.sleep(source.duration + 2)  # must be a better way to wait untill the media has played
+    time.sleep(source.duration + 0.5)  # must be a better way to wait untill the media has played
 
 def cache_gtts(text, lang=lang, cache_file=None):
     """
@@ -106,20 +105,26 @@ def generate_poem():
     t0 = time.time()
     r = sr.Recognizer()
 
+    # This section could use work. But since I'm frequently initialising the mic, 
+    # I don't think it has time to dynamically adapt, so I'm doing a specific auto calibrate here first
     speak("Hi I'm bit-lit. Silence puny Humans. I must calibrate the microphone. I will make a dong sound when I am finished")
-    time.sleep(2)
+    time.sleep(1)
+    r.dynamic_energy_threshold = False
     with sr.Microphone() as source:
         logger.debug('microphone source is %s', source)
-        r.adjust_for_ambient_noise(source, duration=6) 
-    logger.info('calibrate mic energy_threshold to %s', r.energy_threshold)
-    # r.energy_threshold = max(r.energy_threshold, 25)
-    # r.energy_threshold = min(r.energy_threshold, 300)
-    # logger.info('calibrate mic energy_threshold to %s', r.energy_threshold)
+        print(dir(source))
+        r.adjust_for_ambient_noise(source, duration=4) 
+    # https://github.com/Uberi/speech_recognition/blob/master/reference/library-reference.rst#recognizer_instanceenergy_threshold--300---type-float
+    logger.info('calibrate mic energy_threshold to %s. This should be between 150 and 3500 for speaking. If its higher you should turn down your mic', r.energy_threshold)
+    r.energy_threshold = max(r.energy_threshold, 150)
+    r.energy_threshold = min(r.energy_threshold, 3500)
+    logger.info('maxmin mic energy_threshold to %s', r.energy_threshold)
     play_dong()
 
     while True:
         try:
-            speak('When you want me to make a poem summon me with "Hi BitLit" or by my nicknames "computer", "snowboy", or "Hey Extreme"')
+            speak('When you want me to make a poem summon me with "Hi BitLit" or "computer"')
+            logger.info('mic energy_threshold to %s', r.energy_threshold)
             play_ding()
             with sr.Microphone() as source:
                 audio_hotword = r.listen(source, snowboy_configuration=snowboy_configuration)
@@ -127,11 +132,11 @@ def generate_poem():
                 record_audio(audio_hotword, "outputs/hotword-results.flac", play=DEBUG)
             play_dong()
 
-            speak(text="Hi Humans! My Name is BIT-LIT. Please inspire me with the first line of a poem. You may speak for 20 seconds after the bing.")
-
+            speak(text="Hi Humans! My Name is BIT-LIT. Inspire me with the first line of a poem. You may speak for 10 seconds after the bing.")
+            speak('ding')
             play_ding()
             with sr.Microphone() as source:
-                audio = r.record(source, duration=20)
+                audio = r.record(source, duration=10)
             play_dong()
 
             # write audio to a WAV file for debugging
@@ -141,7 +146,7 @@ def generate_poem():
             logger.debug('done recording %s', time.time())
             logger.info('recorded %s s', len(audio.frame_data)/audio.sample_rate)
 
-            speak(text="THANK YOU! GIVE ME A MINUTE TO GENERATE AND READ YOUR POEM")
+            speak(text="Thank you! Give me a minute to generate and read your poem.")
 
             t1 = time.time()
             logger.debug('listen took %s', t1 - t0)
@@ -156,7 +161,7 @@ def generate_poem():
                 continue 
             except sr.RequestError as e:
                 logger.error("Could not request results; {0}".format(e))
-                speak("I'm sorry I could not communicate with the speech to _text the internet'")
+                speak("I'm sorry I could not communicate with the speech to text the internet'")
                 continue
 
             t1b = time.time()
@@ -202,4 +207,19 @@ def generate_poem():
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--debug", help="increase output verbosity",
+                    action="store_true")
+    args = parser.parse_args()
+
+    DEBUG = args.debug
+    if DEBUG:
+        logging.getLogger().setLevel(logging.DEBUG)
+        for handler in logging.getLogger().handlers:
+            handler.setLevel(logging.DEBUG)
+
+        for index, name in enumerate(sr.Microphone.list_microphone_names()):
+            logger.debug("Microphone with name \"{1}\" found for `Microphone(device_index={0})`".format(index, name))
+
+
     generate_poem()
