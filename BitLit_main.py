@@ -24,7 +24,7 @@ import tempfile
 import glob
 from logger import logger
 import argparse
-from snowboydecoder import play_ding, play_dong
+from snowboydecoder import play_ding
 
 ## Packages for voice recognizer
 import speech_recognition as sr  
@@ -41,6 +41,9 @@ except:
     print('you should place google cloud json credentials at "secrets/google_cloud_credentials.json", make sure you enable the speech recognition api')
     GOOGLE_CLOUD_SPEECH_CREDENTIALS = None
 
+
+def play_ding():
+    speak('ding')
 
 def play_mp3(mp3_file):
     """Play mp3 file with pyglet."""
@@ -95,49 +98,59 @@ def record_audio(audio, output_file, play=False):
         play_mp3(output_file)
 
 
-def generate_poem():
+def generate_poem(args):
 
     if DEBUG:
         speak("I'm in debug mode")
 
     ############ AUDIO CONVERSION TO TEST
-    play_dong()
+    play_ding()
     t0 = time.time()
     r = sr.Recognizer()
 
-    # This section could use work. But since I'm frequently initialising the mic, 
-    # I don't think it has time to dynamically adapt, so I'm doing a specific auto calibrate here first
-    speak("Hi I'm bit-lit. Silence puny Humans. I must calibrate the microphone. I will make a dong sound when I am finished")
-    time.sleep(1)
-    r.dynamic_energy_threshold = False
-    with sr.Microphone() as source:
-        logger.debug('microphone source is %s', source)
-        print(dir(source))
-        r.adjust_for_ambient_noise(source, duration=4) 
-    # https://github.com/Uberi/speech_recognition/blob/master/reference/library-reference.rst#recognizer_instanceenergy_threshold--300---type-float
-    logger.info('calibrate mic energy_threshold to %s. This should be between 150 and 3500 for speaking. If its higher you should turn down your mic', r.energy_threshold)
-    r.energy_threshold = max(r.energy_threshold, 150)
-    r.energy_threshold = min(r.energy_threshold, 3500)
-    logger.info('maxmin mic energy_threshold to %s', r.energy_threshold)
-    play_dong()
+    if args.pre_calib:
+        # This section could use work. But since I'm frequently initialising the mic, 
+        # I don't think it has time to dynamically adapt, so I'm doing a specific auto calibrate here first
+        speak("Hi I'm bit-lit. Silence puny Humans. I must calibrate the microphone. I will make a dong sound when I am finished")
+        time.sleep(1)
+        r.dynamic_energy_threshold = False
+        with sr.Microphone() as source:
+            logger.debug('microphone source is %s', source)
+            print(dir(source))
+            r.adjust_for_ambient_noise(source, duration=4) 
+        # https://github.com/Uberi/speech_recognition/blob/master/reference/library-reference.rst#recognizer_instanceenergy_threshold--300---type-float
+        logger.info('calibrate mic energy_threshold to %s. This should be between 150 and 3500 for speaking. If its higher you should turn down your mic', r.energy_threshold)
+        r.energy_threshold = max(r.energy_threshold, 150)
+        r.energy_threshold = min(r.energy_threshold, 3500)
+        logger.info('maxmin mic energy_threshold to %s', r.energy_threshold)
+        play_ding()
+    elif args.energy_threshold:
+        r.dynamic_energy_threshold = False
+        r.energy_threshold = args.energy_threshold
+        logger.info("setting constant energy_threshold to %s", args.energy_threshold)
+    else:
+        logger.info("using dynamic background energy_threshold calibration")
 
     while True:
         try:
-            speak('When you want me to make a poem summon me with "Hi BitLit" or "computer"')
-            logger.info('mic energy_threshold to %s', r.energy_threshold)
-            play_ding()
-            with sr.Microphone() as source:
-                audio_hotword = r.listen(source, snowboy_configuration=snowboy_configuration)
-            if DEBUG:
-                record_audio(audio_hotword, "outputs/hotword-results.flac", play=DEBUG)
-            play_dong()
+            if not args.woke:
+                speak('When you want me to make a poem summon me with "Hi BitLit" or "computer"')
+                logger.info('mic energy_threshold to %s', r.energy_threshold)
+                time.sleep(1)
+                with sr.Microphone() as source:
+                    time.sleep(1)
+                    play_ding()
+                    audio_hotword = r.listen(source, snowboy_configuration=snowboy_configuration)
+                if DEBUG:
+                    record_audio(audio_hotword, "outputs/hotword-results.flac", play=DEBUG)
+                play_ding()
 
-            speak(text="Hi Humans! My Name is BIT-LIT. Inspire me with the first line of a poem. You may speak for 10 seconds after the bing.")
-            speak('ding')
+            speak(text="Hi Humans! My Name is BIT-LIT. Inspire me with the first line of a poem: You may speek for 10 seconds after the bing.")
+            
             play_ding()
             with sr.Microphone() as source:
                 audio = r.record(source, duration=10)
-            play_dong()
+            play_ding()
 
             # write audio to a WAV file for debugging
             if DEBUG:
@@ -146,7 +159,8 @@ def generate_poem():
             logger.debug('done recording %s', time.time())
             logger.info('recorded %s s', len(audio.frame_data)/audio.sample_rate)
 
-            speak(text="Thank you! Give me a minute to generate and read your poem.")
+            # Text to speech
+            speak(text="Thank you! Give me a minute to generate and reed your poem")
 
             t1 = time.time()
             logger.debug('listen took %s', t1 - t0)
@@ -167,8 +181,7 @@ def generate_poem():
             t1b = time.time()
             logger.debug('transcribe took %s', t1b - t1)
 
-            if DEBUG:
-                speak('DEBUG: I think you said %s' % USER_INPUT)
+            speak('I think you said %s' % USER_INPUT)
 
             # Generate poem from user seed
             text_generated, rhymes = poem(USER_INPUT)
@@ -178,7 +191,7 @@ def generate_poem():
             logger.debug('poem and rhyme generation took %s', t2 - t1)
 
             if DEBUG:
-                speak('DEBUG: your rhymes are '+ ' '.join(rhymes))
+                speak('DEBUG: your rhymes are: '+ ' '.join(rhymes))
 
             # FEED POEM TO TRANSCRIBER
             cache_file = "outputs/BitLit_last_poem.mp3"
@@ -210,6 +223,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--debug", help="increase output verbosity",
                     action="store_true")
+    parser.add_argument("-e", "--energy-threshold", help="Instead of using dynamic or pre calibration, set an integer for the level of background noise. Ideally between 40-4000.",  default=None)
+    parser.add_argument("-p", "--pre-calib", help="Pre calibration instead of the default deynamic calibration",  action='store_true')
+    parser.add_argument("-w", "--woke", help="Woke youself. In this mode bitlit will be so woke it wont need a wokeword.",  action='store_true')
     args = parser.parse_args()
 
     DEBUG = args.debug
@@ -222,4 +238,4 @@ if __name__ == "__main__":
             logger.debug("Microphone with name \"{1}\" found for `Microphone(device_index={0})`".format(index, name))
 
 
-    generate_poem()
+    generate_poem(args)
