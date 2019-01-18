@@ -41,7 +41,6 @@ except:
     print('you should place google cloud json credentials at "secrets/google_cloud_credentials.json", make sure you enable the speech recognition api')
     GOOGLE_CLOUD_SPEECH_CREDENTIALS = None
 
-
 def play_ding():
     speak('ding')
 
@@ -49,8 +48,13 @@ def play_mp3(mp3_file):
     """Play mp3 file with pyglet."""
     source = pyglet.media.load(filename=mp3_file, streaming=False)
     logger.debug('playing %s second file', source.duration)
-    source.play()
+
+    # This is a bit convoluted but it avoid opening to many pulseaudio streams
+    player = pyglet.media.Player()
+    player.queue(source)
+    player.play()
     time.sleep(source.duration + 0.5)  # must be a better way to wait untill the media has played
+    player.delete()
 
 def cache_gtts(text, lang=lang, cache_file=None):
     """
@@ -190,6 +194,8 @@ def generate_poem(args):
             logger.info("ML POEM is: %s", text_generated)
             logger.debug('poem and rhyme generation took %s', t2 - t1)
 
+            speak(text="Almost there")
+
             if DEBUG:
                 speak('DEBUG: your rhymes are: '+ ' '.join(rhymes))
 
@@ -213,8 +219,9 @@ def generate_poem(args):
         except KeyboardInterrupt as e:
             raise 
         except Exception as e:
+            logger.exception("Exception %s" % e)
             speak("Oh no I had an error I will try again in one minute")
-            speak("The error was %s" % e)
+            # speak("The error was %s" % e) # this crashes it?
             time.sleep(60)
 
 
