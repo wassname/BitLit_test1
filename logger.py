@@ -8,8 +8,13 @@ Then set filehandler at debug and stream handler at info.
 import logging
 import sys
 import os
+import json
 import datetime
 import tempfile
+
+
+import datadog
+from datadog_logger import DatadogLogHandler
 
 # To use differen't log level for file and console
 timestamp = datetime.datetime.utcnow().strftime('%Y%m%d_%H-%M-%S')
@@ -23,17 +28,6 @@ file_handler.setFormatter(formatter)
 stream_handler = logging.StreamHandler(sys.stdout)
 stream_handler.setLevel(logging.INFO)
 
-import datadog
-from datadog_logger import DatadogLogHandler
-
-
-json_formatter = logging.Formatter('{ "loggerName":"%(name)s", "asciTime":"%(asctime)s", "fileName":"%(filename)s", "logRecordCreationTime":"%(created)f", "functionName":"%(funcName)s", "levelNo":"%(levelno)s", "lineNo":"%(lineno)d", "time":"%(msecs)d", "levelName":"%(levelname)s", "message":"%(message)s"}')
-
-datadog.initialize(api_key="4bc53c4318964cd97489b3c1c5401c50", app_key="c07cf0fb03e363228c67f695cc957422a2763d65")
-
-datadog_handler = DatadogLogHandler(level=logging.INFO)
-
-
 # The handlers have to be at a root level since they are the final output
 logging.basicConfig(
     level=logging.DEBUG, 
@@ -45,5 +39,13 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger('bitlit')
-logger.addHandler(datadog_handler)
+
+if os.path.isfile('./secrets/datadog.json'):
+    sec = json.load(open('./secrets/datadog.json', 'r'))
+    datadog.initialize(**sec)
+    datadog_handler = DatadogLogHandler(level=logging.INFO)
+    logger.addHandler(datadog_handler)
+    print('logging to datadog')
+
+
 logger.info('Logging to STDOUT and {}'.format(filename))
