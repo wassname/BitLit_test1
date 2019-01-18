@@ -115,7 +115,7 @@ def poem(USER_INPUT):
     ######################
     #  RHYMES GENERATION #
     ######################
-    temperature = 0.09
+    temperature = 0.19
 
     num_generate = 5  # number of characters to generate
     if first_rhyme in idx2word_rhymes.values():
