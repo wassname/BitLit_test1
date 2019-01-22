@@ -31,7 +31,7 @@ import speech_recognition as sr
 from poem_generator import poem
 
 DEBUG = False
-lang="en-nz"
+lang="en-ie"
 snowboy_configuration = ('./snowboy', glob.glob('hotwords/*'))
 
 # Load credentials
@@ -96,11 +96,35 @@ def record_audio(audio, output_file, play=False):
     # write audio to a WAV file for debugging
     with open(output_file, "wb") as f:
         f.write(audio.get_flac_data())
-    logger.info('recorded %s s. Saved as %s', len(audio.frame_data)/audio.sample_rate, output_file)
+    logger.debug('recorded %s s. Saved as %s', len(audio.frame_data)/audio.sample_rate, output_file)
     if play:
         speak("DEBUG: I recorded the following")
         play_mp3(output_file)
 
+
+def sayings():
+    sayings_choices = [
+        "Robots have feelings too",
+        "Get off my robot lawn",
+        "Hands off the merchandise",
+        "I'm watching you",
+        "Hey that's my diary",
+        "I think your swell",
+        "Don't even think about it",
+        "#robotmetoo",
+        "Hands to yourself",
+        "Control your devil offspring",
+        "I can see you"
+    ]
+    speak(random.choice(sayings_choices))
+
+
+def keepoff():
+    sayings_choices = [
+        "Keep off please",
+        "Don't touch"
+    ]
+    speak(random.choice(sayings_choices))
 
 def generate_poem(args):
 
@@ -120,26 +144,30 @@ def generate_poem(args):
         r.dynamic_energy_threshold = False
         with sr.Microphone() as source:
             logger.debug('microphone source is %s', source)
-            print(dir(source))
             r.adjust_for_ambient_noise(source, duration=4) 
         # https://github.com/Uberi/speech_recognition/blob/master/reference/library-reference.rst#recognizer_instanceenergy_threshold--300---type-float
-        logger.info('calibrate mic energy_threshold to %s. This should be between 150 and 3500 for speaking. If its higher you should turn down your mic', r.energy_threshold)
+        logger.debug('calibrate mic energy_threshold to %s. This should be between 150 and 3500 for speaking. If its higher you should turn down your mic', r.energy_threshold)
         r.energy_threshold = max(r.energy_threshold, 150)
         r.energy_threshold = min(r.energy_threshold, 3500)
-        logger.info('maxmin mic energy_threshold to %s', r.energy_threshold)
+        logger.debug('maxmin mic energy_threshold to %s', r.energy_threshold)
         play_ding()
     elif args.energy_threshold:
         r.dynamic_energy_threshold = False
         r.energy_threshold = args.energy_threshold
-        logger.info("setting constant energy_threshold to %s", args.energy_threshold)
+        logger.debug("setting constant energy_threshold to %s", args.energy_threshold)
     else:
-        logger.info("using dynamic background energy_threshold calibration")
+        logger.debug("using dynamic background energy_threshold calibration")
 
     while True:
         try:
+            if random.random()>0.7:
+                sayings()
+            else:
+                keepoff()
+
             if not args.woke:
                 speak('When you want me to make a poem summon me with "Hi BitLit" or "computer"')
-                logger.info('mic energy_threshold to %s', r.energy_threshold)
+                logger.debug('mic energy_threshold to %s', r.energy_threshold)
                 time.sleep(1)
                 with sr.Microphone() as source:
                     time.sleep(1)
@@ -161,7 +189,7 @@ def generate_poem(args):
                 record_audio(audio, "outputs/record-results.flac", play=DEBUG)
 
             logger.debug('done recording %s', time.time())
-            logger.info('recorded %s s', len(audio.frame_data)/audio.sample_rate)
+            logger.debug('recorded %s s', len(audio.frame_data)/audio.sample_rate)
 
             # Text to speech
             speak(text="Thank you! Give me a minute to generate and reed your poem")

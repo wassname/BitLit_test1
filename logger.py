@@ -49,3 +49,5 @@ if os.path.isfile('./secrets/datadog.json'):
 
 
 logger.info('Logging to STDOUT and {}'.format(filename))
+
+logging.getLogger('gtts').setLevel(logging.WARNING)
